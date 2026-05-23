@@ -392,6 +392,19 @@ var data={matches:[],scorers:[],profiles:[],predictions:[],tournament:[]};
 var state={user:null,profile:null,picks:{},champion:null,scorer:null};
 var ui={screen:'boot',tab:'home',filter:'all',expanded:{},authStep:'email',authEmail:'',authBusy:false,authErr:'',errMsg:''};
 
+/* official player photos — fetched free from Wikipedia, no API key needed */
+var WIKI_TITLE={mbappe:'Kylian Mbappé',kane:'Harry Kane',messi:'Lionel Messi',haaland:'Erling Haaland',vini:'Vinícius Júnior',yamal:'Lamine Yamal',julian:'Julián Álvarez',lautaro:'Lautaro Martínez',ronaldo:'Cristiano Ronaldo',musiala:'Jamal Musiala',dembele:'Ousmane Dembélé',woltemade:'Nick Woltemade',gakpo:'Cody Gakpo'};
+var WIKI_PHOTO={};
+function loadPhotos(){
+  if(typeof fetch!=='function')return;
+  Promise.all(Object.keys(WIKI_TITLE).map(function(id){
+    return fetch('https://en.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(WIKI_TITLE[id]))
+      .then(function(r){return r.ok?r.json():null;})
+      .then(function(j){if(j&&j.thumbnail&&j.thumbnail.source)WIKI_PHOTO[id]=j.thumbnail.source;})
+      .catch(function(){});
+  })).then(function(){if(ui.screen==='app')rerender();}).catch(function(){});
+}
+
 /* ════════ HELPERS ════════ */
 function $(id){return document.getElementById(id);}
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
@@ -575,6 +588,7 @@ async function boot(){
   try{
     await loadData();
     ui.screen='app';ui.tab='home';renderApp();
+    loadPhotos();
   }catch(e){
     ui.screen='error';ui.errMsg=(e&&e.message)||String(e);renderApp();
   }
@@ -750,9 +764,14 @@ function screenHome(){
   return h;
 }
 function playerSlot(sc,size){
-  var inner=sc?'<img class="pslot-flag" src="https://flagcdn.com/'+(TEAMS[sc.team]?TEAMS[sc.team].cc:'xx')+'.svg" alt=""/>':'';
-  return '<div class="pslot" style="width:'+size+'px;height:'+size+'px;font-size:'+Math.round(size*0.3)+'px">'+
-    (sc?initials(sc.name):'?')+inner+'</div>';
+  if(!sc)return '<div class="pslot" style="width:'+size+'px;height:'+size+'px;font-size:'+Math.round(size*0.3)+'px">?</div>';
+  var cc=TEAMS[sc.team]?TEAMS[sc.team].cc:'xx';
+  var badge='<img class="pslot-flag" src="https://flagcdn.com/'+cc+'.svg" alt=""/>';
+  var photo=sc.photo||WIKI_PHOTO[sc.id];
+  var inner=photo
+    ?'<img src="'+esc(photo)+'" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block"/>'
+    :initials(sc.name);
+  return '<div class="pslot" style="width:'+size+'px;height:'+size+'px;font-size:'+Math.round(size*0.3)+'px">'+inner+badge+'</div>';
 }
 function bdRow(l,v,mx,col){
   return '<div class="bd-row"><span class="bd-lbl">'+l+'</span>'+
