@@ -382,8 +382,7 @@ var BONUS_DEFS=[
  {k:'fh',q:'Who wins the first half?',opts:function(m){return [['t1',TEAMS[m.t1].n],['draw','Draw'],['t2',TEAMS[m.t2].n]];}},
  {k:'corners',q:'Corners — over or under 11?',opts:function(){return [['over','Over 11'],['under','Under 11']];}},
  {k:'pen',q:'Will there be a penalty?',opts:function(){return [['yes','Yes'],['no','No']];}},
- {k:'red',q:'Will there be a red card?',opts:function(){return [['yes','Yes'],['no','No']];}},
- {k:'first',q:'Who scores first?',opts:function(m){return [['t1',TEAMS[m.t1].n],['none','No goals'],['t2',TEAMS[m.t2].n]];}}
+ {k:'red',q:'Will there be a red card?',opts:function(){return [['yes','Yes'],['no','No']];}}
 ];
 
 /* live, populated from the database */
@@ -869,9 +868,9 @@ function bonusBlock(m,st,pick){
   if(st==='done'){
     var act=bonusActual(m.id),cor=0;
     if(pick&&pick.bonus)BONUS_DEFS.forEach(function(d){if(pick.bonus[d.k]===act[d.k])cor++;});
-    label='Bonus · '+cor+'/5 correct';av='<span class="bt-av">+'+cor+'</span>';
-  }else if(st==='live'||st==='inplay')label='Bonus · '+ans+'/5 · locked';
-  else{label='Bonus questions · '+ans+'/5 answered';av='<span class="bt-av">+5</span>';}
+    label='Bonus · '+cor+'/4 correct';av='<span class="bt-av">+'+cor+'</span>';
+  }else if(st==='live'||st==='inplay')label='Bonus · '+ans+'/4 · locked';
+  else{label='Bonus questions · '+ans+'/4 answered';av='<span class="bt-av">+4</span>';}
   var h='<button class="bonus-toggle'+(open?' open':'')+'" data-bonus="'+m.id+'">'+
     '<span class="bt-zap">'+I.fire+'</span><span class="bt-spc">'+label+'</span>'+av+
     '<span class="bt-chev">'+I.chevd+'</span></button>';
@@ -969,7 +968,7 @@ function sheetRules(){
     rl(3,'<b>Right outcome.</b> Correct winner or draw, wrong score.','')+
     rl(0,'<b>Wrong.</b> Outcome missed.','')+
     '<div class="admin-sec-t">Bonus questions</div>'+
-    rl(1,'<b>Each correct bonus answer.</b> 5 per match — up to +5.','')+
+    rl(1,'<b>Each correct bonus answer.</b> 4 per match — up to +4.','')+
     '<div class="admin-sec-t">Tournament</div>'+
     rl(15,'<b>World Cup champion</b> predicted right.','gold')+
     rl(10,'<b>Golden Boot</b> top scorer predicted right.','gold')+
