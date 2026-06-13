@@ -380,7 +380,7 @@ var GROUPS={
 };
 var BONUS_DEFS=[
  {k:'fh',q:'Who wins the first half?',opts:function(m){return [['t1',TEAMS[m.t1].n],['draw','Draw'],['t2',TEAMS[m.t2].n]];}},
- {k:'bts',q:'Both teams to score?',opts:function(){return [['yes','Yes'],['no','No']];}},
+ {k:'corners',q:'Corners — over or under 11?',opts:function(){return [['over','Over 11'],['under','Under 11']];}},
  {k:'pen',q:'Will there be a penalty?',opts:function(){return [['yes','Yes'],['no','No']];}},
  {k:'red',q:'Will there be a red card?',opts:function(){return [['yes','Yes'],['no','No']];}},
  {k:'first',q:'Who scores first?',opts:function(m){return [['t1',TEAMS[m.t1].n],['none','No goals'],['t2',TEAMS[m.t2].n]];}}
@@ -431,7 +431,7 @@ function fmtDateHead(ts){return new Date(ts).toLocaleDateString([],{weekday:'lon
 function bonusActual(id){
   var r=RESULTS[id];if(!r||r.live)return null;
   var fh=r.ht[0]>r.ht[1]?'t1':(r.ht[0]<r.ht[1]?'t2':'draw');
-  return {fh:fh,bts:r.bts?'yes':'no',pen:r.pen?'yes':'no',red:r.red?'yes':'no',first:r.first};
+  return {fh:fh,corners:r.corners>11?'over':'under',pen:r.pen?'yes':'no',red:r.red?'yes':'no',first:r.first};
 }
 function calcPoints(pred,id){
   var r=RESULTS[id];
@@ -576,7 +576,7 @@ function buildFromDB(){
   data.matches.forEach(function(r){
     if(r.status==='finished'&&r.score_home!=null){
       RESULTS[r.id]={score:[r.score_home,r.score_away],ht:[r.ht_home||0,r.ht_away||0],
-        bts:!!r.bts,pen:!!r.pen,red:!!r.red,first:r.first_scorer||'none'};
+        corners:r.corners||0,pen:!!r.pen,red:!!r.red,first:r.first_scorer||'none'};
     }else if(r.status==='live'){
       RESULTS[r.id]={live:true,score:[r.score_home||0,r.score_away||0]};
     }
@@ -589,6 +589,10 @@ async function boot(){
     await loadData();
     ui.screen='app';ui.tab='home';renderApp();
     loadPhotos();
+    /* auto-refresh every 90 s so table + results stay current */
+    setInterval(async function(){
+      try{await loadData();rerender();}catch(e){}
+    },90000);
   }catch(e){
     ui.screen='error';ui.errMsg=(e&&e.message)||String(e);renderApp();
   }
